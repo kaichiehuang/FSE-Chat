@@ -56,7 +56,7 @@ mongoose.connection.on('connected', function () {
       }
       //emit history message to all users
       res.forEach(function (val) {
-        io.sockets.emit('chat message', val);
+        io.to(socket.id).emit('chat message', val);
       })
     });
 
