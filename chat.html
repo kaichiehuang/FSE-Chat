@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+
+<html>
+
+<style>
+.container {
+  max-width: 1170px;
+  margin: auto;
+}
+
+.msg_border {
+  border: 1px solid #c4c4c4;
+}
+
+.messaging {
+  padding: 30px 15px 10px 15px;
+}
+
+.type_area {
+  border-top: 1px solid #c4c4c4;
+  position: relative;
+  padding: 10px 5px 5px 5px;
+}
+
+.msg_area {
+  height: 500px;
+  overflow-y: auto;
+}
+</style>
+
+<head>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.1/css/bootstrap.min.css" rel="stylesheet"
+        id="bootstrap-css">
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.1/js/bootstrap.min.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.css" type="text/css"
+        rel="stylesheet">
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.3.0/socket.io.js"></script>
+</head>
+
+<body>
+    <div class="container">
+        <h3 class="text-center">FSE Chat</h3>
+        <a href="/">signout</a>
+        <div class="msg_border">
+            <div class="messaging">
+                <div class="msg_area">
+                    <ul class="list-group list-group-flush" id="chat">
+                        <!-- Chat message goes here -->
+                    </ul>
+                </div>
+                <div class="type_area">
+                    <form action="">
+                        <div class="input-group">
+                            <input type="text" id='msg_input' autocomplete="off" class="form-control" placeholder="Type your message here" aria-label="Recipient's username" aria-describedby="basic-addon2">
+                            <div class="input-group-append">
+                              <button class="btn btn-primary" type="submit">Send</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <script>
+
+        function minutes_with_leading_zeros(m) { 
+            return (m < 10 ? '0' : '') + m;
+        }
+
+        $(document).ready(function(){
+            var socket = io();
+            var sender_name;
+
+            socket.emit('get user');
+
+            $('form').submit (function(event){
+                var today = new Date();
+                var cur_time = today.getHours() + ":" + minutes_with_leading_zeros(today.getMinutes());
+                var msg_obj = {
+                    time: cur_time,
+                    name: sender_name,
+                    msg: $('#msg_input').val()
+                };
+                socket.emit('chat message', msg_obj);
+                $('#msg_input').val('');
+                event.preventDefault();
+                return false;
+            });
+
+            socket.on('give user', function(rec_obj) {
+                sender_name = rec_obj;
+            });
+
+            socket.on('chat message', function(rec_obj) {
+                var msg =
+                `<li class="list-group-item list-group-item-action flex-column align-items-center">
+                    <div class="d-flex  justify-content-between">
+                        <small>` + rec_obj.name + `</small>
+                        <small>` + rec_obj.time + `</small>
+                    </div>
+                    <p class="mb-1 text-wrap text-break" style="width:100%;word-break:break-all;">`
+                        + rec_obj.msg +
+                    `</p>
+                </li>`;
+                
+                $("#chat").append(msg);
+            });
+
+        });  
+    </script>
+
+</body>
+
+</html>

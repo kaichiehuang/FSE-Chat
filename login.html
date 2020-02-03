@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.1/css/bootstrap.min.css" rel="stylesheet"
+        id="bootstrap-css">
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.1/js/bootstrap.min.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.css" type="text/css"
+        rel="stylesheet">
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.3.0/socket.io.js"></script>
+</head>
+
+<body>
+    <div class="container">
+        <form id='signinup'>
+            <div class="form-group">
+                <label>User name</label>
+                <input type="text" class="form-control" id="username" placeholder="Enter username" autocomplete="off">
+            </div>
+            <div class="form-group">
+                <label>Password</label>
+                <input type="password" class="form-control" id="password" placeholder="Password">
+            </div>
+            <button type="button" class="btn btn-primary" id="loginBtn">Login</button>
+            <button type="button" class="btn btn-primary" id='signupBtn'>SignUp</button>
+        </form>
+    </div>
+
+
+    <!-- Modal -->
+    <div class="modal fade" id="alertModal" tabindex="-1" role="dialog" aria-labelledby="alertLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="alertLabel">Modal title</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <p id='modal_content'>
+                        <!-- alert goes here -->
+                    </p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+
+
+        $(document).ready(function () {
+            var socket = io();
+            $("#signinup button").click(function (event) {
+                event.preventDefault();
+                var e;
+                if ($(this).attr("id") == "loginBtn") {
+                    //alert("Login Button is pressed")
+                    e = 'signin'
+                }
+                if ($(this).attr("id") == "signupBtn") {
+                    //alert("Sign up is pressed");
+                    e = 'signup'
+                }
+
+
+                //$("#signinup").submit();
+                
+                var user_obj = {
+                    usr: $('#username').val(),
+                    pwd: $('#password').val()
+                };
+                
+                socket.emit(e, user_obj);
+                $('#username').val('');
+                $('#password').val('');
+                return false;
+
+            });
+
+
+            //sign in part
+            socket.on('pwd_correct', function (rec_obj) {
+                // jQuery.get('/chat');
+                location.href='//localhost:3000/chat' + $('#username').val();
+            });
+            socket.on('pwd_incorrect', function (rec_obj) {
+                $('#modal_content').text("Password incorrect, try again!");
+                $('#alertLabel').text("Wrong password");
+                $('#alertModal').modal({ show: true });
+            });
+            socket.on('usr_no_exists', function (rec_obj) {
+                $('#modal_content').text("User does not exists, please sign up!");
+                $('#alertLabel').text("User not found");
+                $('#alertModal').modal({ show: true });
+                console.log("user not exists");
+            });
+
+            //sign up part
+            socket.on('usr_exits', function (rec_obj) {
+                $('#modal_content').text("User exists, please log in!");
+                $('#alertLabel').text("User already exists");
+                $('#alertModal').modal({ show: true });
+            });
+            socket.on('usr_created', function (rec_obj) {
+                $('#modal_content').text("Account created, please log in!");
+                $('#alertLabel').text("New account created");
+                $('#alertModal').modal({ show: true });
+            });
+        });
+
+    </script>
+
+
+
+</body>
+
+</html>
